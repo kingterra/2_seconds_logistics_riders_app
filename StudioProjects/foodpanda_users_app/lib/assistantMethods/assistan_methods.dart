@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
-import 'package:foodpanda_users_app/assistantMethods/cart_Item_Counter.dart';
+import 'package:foodpanda_users_app/assistantMethods/cart_Item_counter.dart';
 import 'package:foodpanda_users_app/global/global.dart';
 import 'package:foodpanda_users_app/splashScreen/splash_screen.dart';
 import 'package:provider/provider.dart';

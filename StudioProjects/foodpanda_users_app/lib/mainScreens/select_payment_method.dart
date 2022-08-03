@@ -12,7 +12,7 @@ import 'package:foodpanda_users_app/global/global.dart';
 import 'package:foodpanda_users_app/mainScreens/InitialScreen.dart';
 import 'package:foodpanda_users_app/mainScreens/buttomsheet.dart';
 
-import 'package:foodpanda_users_app/mainScreens/change_payment.dart';
+import 'package:foodpanda_users_app/assistantMethods/change_payment.dart';
 
 import 'package:foodpanda_users_app/stripeKeys/stripe_id.dart';
 

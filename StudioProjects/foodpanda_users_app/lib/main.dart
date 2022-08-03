@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:foodpanda_users_app/assistantMethods/addressIDChanger.dart';
 import 'package:foodpanda_users_app/assistantMethods/cart_Item_Counter.dart';
 import 'package:foodpanda_users_app/global/global.dart';
-import 'package:foodpanda_users_app/mainScreens/change_payment.dart';
+import 'package:foodpanda_users_app/assistantMethods/change_payment.dart';
 import 'package:foodpanda_users_app/splashScreen/splash_screen.dart';
 import 'package:foodpanda_users_app/stripeKeys/stripe_id.dart';
 import 'package:provider/provider.dart';

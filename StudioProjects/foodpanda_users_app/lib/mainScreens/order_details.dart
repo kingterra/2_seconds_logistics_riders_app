@@ -4,22 +4,25 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:foodpanda_users_app/assistantMethods/addressIDChanger.dart';
-import 'package:foodpanda_users_app/assistantMethods/assistan_methods.dart';
-import 'package:foodpanda_users_app/mainScreens/InitialScreen.dart';
+import 'package:foodpanda_users_app/assistantMethods/change_payment.dart';
 import 'package:foodpanda_users_app/mainScreens/address_screen.dart';
-import 'package:foodpanda_users_app/mainScreens/buttomsheet.dart';
-import 'package:foodpanda_users_app/mainScreens/change_payment.dart';
-
 import 'package:foodpanda_users_app/mainScreens/select_payment_method.dart';
-import 'package:foodpanda_users_app/models/id_address.dart';
 import 'package:foodpanda_users_app/widgets/order_details_buttonAddress_widget.dart';
-import 'package:foodpanda_users_app/widgets/yellow_button.dart';
+import 'package:foodpanda_users_app/widgets/order_details_screen_design.dart';
+
 import 'package:provider/provider.dart';
 
+
 import '../assistantMethods/address_changer.dart';
+import '../assistantMethods/assistan_methods.dart';
+
+import '../assistantMethods/total_amount.dart';
 import '../global/global.dart';
 import '../models/address.dart';
+import '../models/items.dart';
 import '../widgets/progress_bar.dart';
+import '../widgets/yellow_button.dart';
+import 'InitialScreen.dart';
 
 class OrderDetailsScreen extends StatefulWidget {
 
@@ -33,44 +36,53 @@ class OrderDetailsScreen extends StatefulWidget {
 }
 
 class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
-  int selected = 1;
 
-  ChangeSelected ?seleccionMetodoPago;
-  AddressChanger ?seleccionDireccion;
+  List<int>? separateItemQuantityList;
+
+  num totalAmount = 0;
 
 
-  AddressUID? addressID;
+  @override
+  void initState() {
+    if (mounted) {
 
-  String orderid = DateTime
-      .now()
-      .millisecondsSinceEpoch
-      .toString();
+      super.initState();
+      totalAmount =0;
+      Provider.of<TotalAmount>(context, listen: false).displayTotalAmount(0);
+      separateItemQuantityList= separateItemQuantities();
+    }
+  }
 
+  ChangeSelected? seleccionMetodoPago;
+  AddressChanger? seleccionDireccion;
+
+  String orderid = DateTime.now().millisecondsSinceEpoch.toString();
 
   addOrderDetails() {
     writeOrderDetailsForUser({
-      "addressID": Provider.of<AddressIDChanger>(context, listen: false).IDChanger,
+      "addressID":
+      Provider.of<AddressIDChanger>(context, listen: false).IDChanger,
       "totalAmount": widget.totalAmount,
       "orderBy": sharedPreferences!.getString("uid"),
       "productIDs": sharedPreferences!.getStringList("userCart"),
       "paymentDetails": "Cash on Delivery",
       "orderTime": orderid,
-      "isSuccess": true,
+      "isSuccess": "isSuccess",
       "sellerID": widget.sellerUID,
       "riderID": "",
       "status": "normal",
       "orderid": orderid,
     });
 
-
     writeOrderDetailsForSeller({
-      "addressID":  Provider.of<AddressIDChanger>(context, listen: false).IDChanger,
+      "addressID":
+      Provider.of<AddressIDChanger>(context, listen: false).IDChanger,
       "totalAmount": widget.totalAmount,
       "orderBy": sharedPreferences!.getString("uid"),
       "productIDs": sharedPreferences!.getStringList("userCart"),
       "paymentDetails": "Cash on Delivery",
       "orderTime": orderid,
-      "isSuccess": true,
+      "isSuccess": "isSuccess",
       "sellerID": widget.sellerUID,
       "riderID": "",
       "status": "normal",
@@ -81,36 +93,30 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
         orderid = "";
         Navigator.push(
             context, MaterialPageRoute(builder: (c) => InitialScreen()));
-        Fluttertoast.showToast(
-            msg: "Congratulations, Order has been placed successfully.");
+        Fluttertoast.showToast(msg: "Your order has been placed successfully.");
       });
     });
   }
 
-  Future writeOrderDetailsForUser(Map<String, dynamic> data) async{
+  Future writeOrderDetailsForUser(Map<String, dynamic> data) async {
     await FirebaseFirestore.instance
         .collection("users")
         .doc(sharedPreferences!.getString("uid"))
         .collection("orders")
-        .doc(orderid).set(data);
-
+        .doc(orderid)
+        .set(data);
   }
 
-
-  Future writeOrderDetailsForSeller(Map<String, dynamic> data) async
-  {
+  Future writeOrderDetailsForSeller(Map<String, dynamic> data) async {
     await FirebaseFirestore.instance
-
         .collection("orders")
         .doc(orderid)
         .set(data);
   }
 
 
-
   @override
   Widget build(BuildContext context) {
-
     // BUTTON COLORS
 
     Color getBackgroundColor(Set<MaterialState> states) {
@@ -125,7 +131,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       return Colors.white;
     }
 
-
     Color getForegroundColor(Set<MaterialState> states) {
       const Set<MaterialState> interactiveStates = <MaterialState>{
         MaterialState.pressed,
@@ -138,9 +143,9 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
       return Colors.black;
     }
 
-
     return Scaffold(
       backgroundColor: Colors.grey.shade200,
+
       bottomSheet: Container(
         color: Colors.grey.shade200,
         child: Padding(
@@ -151,7 +156,16 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
             decoration: BoxDecoration(
               color: Colors.black,),
 
-            child:TextButton(
+            child: TextButton(
+              child: Text(
+                'Continue',
+                style: TextStyle(
+                  //fontFamily: 'OpenSans',
+                    fontWeight: FontWeight.w600,
+                    fontSize: 20,
+                    color: Colors.white
+                ),
+              ),
               onPressed: () {
                 if ( Provider.of<AddressChanger>(context, listen: false).numeroDireccion == -1 && Provider.of<ChangeSelected>(context, listen: false).selectedValued == 0) {
                   showModalBottomSheet(
@@ -249,7 +263,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                           onPressed: () async {
                                             //showProgress();
                                             //addOrderDetails();
-                                            addOrderDetails();
                                           },
                                         )
                                       ]),
@@ -328,15 +341,6 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   }
                 }
               },
-              child: Text(
-                'Continue',
-                style: TextStyle(
-                  //fontFamily: 'OpenSans',
-                    fontWeight: FontWeight.w600,
-                    fontSize: 20,
-                    color: Colors.white
-                ),
-              ),
             ),
           ),
         ),
@@ -421,7 +425,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                       foregroundColor: MaterialStateProperty.resolveWith(getForegroundColor),
                       elevation: MaterialStateProperty.all(0)
                   ),
-                  onPressed: () { /*Navigator.push(context, MaterialPageRoute(builder: (c)=> AddressScreen()));*/ },
+                  onPressed: () { Navigator.push(context, MaterialPageRoute(builder: (c)=> SelectPaymentMethod())); },
                   child: Container(
                     //color: Colors.red,
                     width: MediaQuery.of(context).size.width,
@@ -435,19 +439,12 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                               child: FaIcon(FontAwesomeIcons.creditCard, /*color: Colors.black,*/ size: 25)
                           ),
 
-                          GestureDetector(
-                            onTap: ()
-                            {
-                              Navigator.push(context, MaterialPageRoute(builder: (c)=> SelectPaymentMethod()));
-                            },
-
-                         child: Container(
+                          Container(
                             width: MediaQuery.of(context).size.width*0.75,
                             child: Text(
                               "Select payment method",
                               style: TextStyle(fontSize: 24),
                             ),
-                          ),
                           ),
 
                           /*Consumer<AddressChanger>(builder: (context, address, c){
@@ -479,6 +476,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                                         ),
                                       );
                                     },
+
                                   );
                                 },
                               ),
@@ -493,11 +491,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ],
             ),
           ),
-          SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height*0.005,
-              )
-          ),
+          SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).size.height*0.005,)),
           SliverToBoxAdapter(
               child: Container(
                   color: Colors.white,
@@ -516,11 +510,7 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                   )
               )
           ),
-          SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height*0.005,
-              )
-          ),
+          SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).size.height*0.005,)),
           SliverToBoxAdapter(
             child: Container(
               color: Colors.white,
@@ -540,63 +530,77 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
                     ],
                   ),
                   SizedBox(height: MediaQuery.of(context).size.height*0.01,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(width: MediaQuery.of(context).size.width*0.04),
-                      Text(
-                        "Arroz con pollo x 1",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height*0.01,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(width: MediaQuery.of(context).size.width*0.04),
-                      Text(
-                        "Ensalada de Pato x 4",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height*0.01,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(width: MediaQuery.of(context).size.width*0.04),
-                      Text(
-                        "Pizza BBQ x 1",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height*0.01,),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      SizedBox(width: MediaQuery.of(context).size.width*0.04),
-                      Text(
-                        "Spaghetti Carbonara x 1",
-                        style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: MediaQuery.of(context).size.height*0.01,),
                 ],
               ),
             ),
           ),
-          SliverToBoxAdapter(
-              child: SizedBox(
-                height: MediaQuery.of(context).size.height*0.005,
+          StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection("items")
+                .where("itemID", whereIn: separateItemIDs())
+                .orderBy("publishedDate", descending: true)
+                .snapshots(),
+            builder: (context, snapshot)
+            {
+              return !snapshot.hasData
+                  ? SliverToBoxAdapter(child: Center(child: circularProgress(),),)
+                  : snapshot.data!.docs.length == 0
+                  ? //startBuildingCart()
+              SliverList(
+                delegate: SliverChildBuilderDelegate((context, index)
+                {
+                  Items model = Items.fromJson(
+                    snapshot.data!.docs[index].data()! as Map<String, dynamic>,
+                  );
+                  return OrderDetailsScreenDesign(
+                    model: model,
+                    context: context,
+                    quanNumber: separateItemQuantityList![index],
+                  );
+                },
+                  childCount: snapshot.hasData ? snapshot.data!.docs.length : 0,
+                ),
               )
+                  : SliverList(
+                delegate: SliverChildBuilderDelegate((context, index)
+                {
+                  Items model = Items.fromJson(
+                    snapshot.data!.docs[index].data()! as Map<String, dynamic>,
+                  );
+
+                  // we check if we have the first item index in the cart
+                  if(index ==0){
+                    totalAmount =0;
+                    //we multiply the number of item times the price
+                    totalAmount = totalAmount + (model.price! * separateItemQuantityList![index]);
+                  }else {
+
+                    //if the item index is greater than 0 we will
+                    //keep geting the total amount of the rest item index
+                    totalAmount = totalAmount + (model.price! * separateItemQuantityList![index]);
+                  }
+
+                  // if we get to the last cart item index list
+                  //calculate me the total item product
+
+                  WidgetsBinding.instance!.addPostFrameCallback((timeStamp)
+                  {
+                    //with the provider we update the total amount in real time
+                    Provider.of<TotalAmount>(context, listen: false).displayTotalAmount(totalAmount.toDouble());
+                  });
+
+                  return OrderDetailsScreenDesign(
+                    model: model,
+                    context: context,
+                    quanNumber: separateItemQuantityList![index],
+                  );
+                },
+                  childCount: snapshot.hasData ? snapshot.data!.docs.length : 0,
+                ),
+              );
+            },
           ),
+          SliverToBoxAdapter(child: SizedBox(height: MediaQuery.of(context).size.height*0.005,)),
           SliverToBoxAdapter(
             child: Container(
               color: Colors.white,
@@ -615,38 +619,37 @@ class _OrderDetailsScreenState extends State<OrderDetailsScreen> {
               ),
             ),
           ),
-          SliverFillRemaining(
-              hasScrollBody: false,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.all(MediaQuery.of(context).size.width/25),
-                    child: Container(
-                      height: MediaQuery.of(context).size.height/14,
-                      width: MediaQuery.of(context).size.width,
-                      decoration: BoxDecoration(
-                        color: Colors.black,
-                      ),
+          /*SliverFillRemaining(
+               hasScrollBody: false,
+               child: Column(
+                 mainAxisAlignment: MainAxisAlignment.end,
+                 children: [
+                   Padding(
+                     padding: EdgeInsets.all(MediaQuery.of(context).size.width/25),
+                     child: Container(
+                       height: MediaQuery.of(context).size.height/14,
+                       width: MediaQuery.of(context).size.width,
+                       decoration: BoxDecoration(
+                         color: Colors.black,
+                       ),
+                       child: TextButton(
+                         onPressed: () { /*Navigator.push(context, MaterialPageRoute(builder: (c)=> OrderDetailsScreen(),),); */},
+                         child: Text(
+                           'Continue',
+                           style: TextStyle(
+                             //fontFamily: 'OpenSans',
+                               fontWeight: FontWeight.w600,
+                               fontSize: 20,
+                               color: Colors.white
+                           )
+                       ),
 
-                    ),
-                      /*TextButton(
-                        onPressed: () { /*Navigator.push(context, MaterialPageRoute(builder: (c)=> OrderDetailsScreen(),),); */},
-                        child: Text(
-                            'Continue',
-                            style: TextStyle(
-                              //fontFamily: 'OpenSans',
-                                fontWeight: FontWeight.w600,
-                                fontSize: 20,
-                                color: Colors.white
-                            )
-                        ),
-
-                      ),*/
-                    ),
-                ],
-              )
-          )
+                       ),
+                     ),
+                   ),
+                 ],
+               )
+           )*/
         ],
       ),
     );
